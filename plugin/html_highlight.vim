@@ -1,12 +1,12 @@
 " setup a few variables
 if !exists('g:html_theme')
-  let g:html_theme = 'bipolar'
+  let g:html_theme = 'Zellner'
 end
 if !exists('g:html_font')
   let g:html_font = 'Menlo'
 end
 if !exists('g:html_size')
-  let g:html_size = '24'
+  let g:html_size = '12'
 end
 
 function! HtmlHighlight(line1,line2,...)
@@ -15,15 +15,22 @@ function! HtmlHighlight(line1,line2,...)
     return
   endif
 
+  let my_filetype = &filetype
+
   let content = join(getline(a:line1,a:line2),"\n")
-  let command = "highlight --syntax " . a:1 . " -s " . g:html_theme . " -Ohtml -k --include_style " . g:html_font . " -K " . g:html_size
-  let output = system(command,content)
-  " let @* = output
-  " for some reason text copied this way
-  " gets pasted as escaped plain text in keynote
-  " but this works well with pbcopy
-  let retval = system("pbcopy",output)
+  let filename = tempname() . ".md"
+
+  new
+  setlocal buftype=nofile bufhidden=hide noswapfile nobuflisted
+  let firstline = '```' . my_filetype
+  put=firstline
+  put=content
+  put='```'
+  execute 'w' fnameescape(filename)
+  q
+
+  execute 'silent !open -a "Google Chrome"' filename
 endfunction
 
 " map it to a command
-command! -nargs=1 -range=% HtmlHighlight :call HtmlHighlight(<line1>,<line2>,<f-args>)
+command! -nargs=0 -range=% HtmlHighlight :call HtmlHighlight(<line1>,<line2>,<f-args>)
